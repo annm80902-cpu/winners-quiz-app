@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winners Group Platform</title>
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.12);
+            --border: rgba(255, 255, 255, 0.2);
+            --text: #ffffff;
+            --accent: #00f2fe;
+            --success: #8bc34a;
+            --danger: #ff4d4d;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
+            color: var(--text);
+        }
+
+        .container {
+            width: 95%;
+            max-width: 500px;
+            height: 90vh;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .tabs { display: flex; background: rgba(0,0,0,0.3); padding: 5px; }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 15px;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            box-shadow: inset 0 0 10px var(--accent);
+        }
+
+        .content-section { display: none; padding: 20px; overflow-y: auto; height: 100%; }
+        .content-section.active { display: block; }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .option-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-container input[type="text"] {
+            margin: 0;
+            border: none;
+            background: transparent;
+            padding: 5px;
+        }
+
+        .btn-main {
+            width: 100%;
+            padding: 15px;
+            background: var(--success);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .admin-nav { display: flex; justify-content: center; gap: 25px; margin-bottom: 20px; font-size: 0.9rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .admin-nav span { cursor: pointer; opacity: 0.6; padding-bottom: 5px; }
+        .admin-nav span.active-sub { opacity: 1; border-bottom: 2px solid var(--accent); color: var(--accent); font-weight: bold; }
+
+        .quiz-card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .student-option {
+            display: block;
+            background: rgba(255,255,255,0.08);
+            padding: 12px;
+            border-radius: 10px;
+            margin: 6px 0;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        
+        .student-option:hover {
+            border-color: var(--accent);
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <nav class="tabs">
+        <button class="tab-btn active" id="btn-portal" onclick="showTab('student')">Student Portal</button>
+        <button class="tab-btn" id="btn-admin" onclick="showTab('admin')">Admin Panel</button>
+    </nav>
+
+    <div id="student" class="content-section active">
+        <div id="student-auth">
+            <h2 style="text-align: center; margin-bottom: 5px;">Student Dashboard</h2>
+            <p style="text-align: center; opacity: 0.7; font-size: 0.9rem; margin-top: 0;">Enter your name to start the active quiz</p>
+            <input type="text" id="studentName" placeholder="Your Full Name...">
+            <button class="btn-main" onclick="startQuiz()">Start Quiz</button>
+        </div>
+
+        <div id="quiz-area" class="hidden">
+            <h3 id="display-student-name" style="color: var(--accent); margin-bottom: 5px;"></h3>
+            <hr style="border: 0.5px solid var(--border); margin-bottom: 20px;">
+            <div id="questions-container"></div>
+            <button class="btn-main" onclick="submitQuiz()">Submit Results</button>
+        </div>
+    </div>
+
+    <div id="admin" class="content-section">
+        <div id="admin-login">
+            <h3>Admin Access</h3>
+            <input type="password" id="adminPass" placeholder="Enter Passcode">
+            <button class="btn-main" onclick="adminLogin()">Login</button>
+        </div>
+
+        <div id="admin-panel" class="hidden">
+            <div class="admin-nav">
+                <span id="nav-manage" class="active-sub" onclick="showAdminSub('manage')">Manage quiz</span>
+                <span id="nav-dashboard" onclick="showAdminSub('dashboard')">Student dashboard</span>
+            </div>
+
+            <div id="sub-manage">
+                <h2>Manage Quiz Questions</h2>
+                <input type="text" id="qText" placeholder="Enter Question text...">
+                <select id="qType" onchange="toggleInputs()">
+                    <option value="mcq">Multiple choices</option>
+                    <option value="tf">True or False</option>
+                </select>
+
+                <div id="mcq-options">
+                    <div class="option-container">
+                        <input type="radio" name="correct" value="0" checked>
+                        <input type="text" class="opt" placeholder="A. Input option........">
+                    </div>
+                    <div class="option-container">
+                        <input type="radio" name="correct" value="1">
+                        <input type="text" class="opt" placeholder="B. Input option........">
+                    </div>
+                    <div class="option-container">
+                        <input type="radio" name="correct" value="2">
+                        <input type="text" class="opt" placeholder="C. Input option........">
+                    </div>
+                    <div class="option-container">
+                        <input type="radio" name="correct" value="3">
+                        <input type="text" class="opt" placeholder="D. Input option........">
+                    </div>
+                </div>
+
+                <div id="tf-options" class="hidden">
+                    <div class="option-container">
+                        <input type="radio" name="correct-tf" value="True" checked>
+                        <span>True</span>
+                    </div>
+                    <div class="option-container">
+                        <input type="radio" name="correct-tf" value="False">
+                        <span>False</span>
+                    </div>
+                </div>
+
+                <button class="btn-main" onclick="saveQuestion()" style="background-color: #7cb342;">Add question</button>
+                
+                <h3 style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 15px;">Active Platform Questions</h3>
+                <div id="admin-questions-list"></div>
+            </div>
+
+            <div id="sub-dashboard" class="hidden">
+                <h2>Student Performance Records</h2>
+                <div id="records-list"></div>
+                <button class="btn-main" onclick="clearRecords()" style="background-color: var(--danger); font-size: 0.9rem; padding: 10px; margin-top: 30px;">Clear Dashboard Logs</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="style.js"></script>
+</body>
+</html>
